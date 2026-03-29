@@ -7,4 +7,5 @@
 5. В папку C:\Windows\System32\ скопировать файл [nhcolor](https://nhutils.ru/download/nhcolor.zip).
 Готово!
 
-[!WARNING] Тест 123
+[!WARNING] 
+Тест 123
