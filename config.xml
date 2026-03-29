@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Config>
+	<ShowStartupGuide>True</ShowStartupGuide>
+	<Language>fr</Language>
+	<OSDDefault>True</OSDDefault>
+	<AcceptedDjiFpvEndUserAgreement>True</AcceptedDjiFpvEndUserAgreement>
+	<ShowGameTriggers>True</ShowGameTriggers>
+	<ShowRaceLines>False</ShowRaceLines>
+	<Fisheye>False</Fisheye>
+	<FramerateLimit>120</FramerateLimit>
+	<ShowFestivityItems>False</ShowFestivityItems>
+	<PreferNightFeverEnvironments>False</PreferNightFeverEnvironments>
+	<PreferSlipstreamAssets>False</PreferSlipstreamAssets>
+	<LimitFramerate>True</LimitFramerate>
+	<FieldOfView>120</FieldOfView>
+	<DontShowPerformancePopupAgain>True</DontShowPerformancePopupAgain>
+	<QualitySetting>0</QualitySetting>
+	<ShadowDistance>20</ShadowDistance>
+	<VSyncMode>0</VSyncMode>
+	<AmplifyBloom.AmplifyBloomEffect_On>False</AmplifyBloom.AmplifyBloomEffect_On>
+	<AmplifyOcclusionEffect_On>False</AmplifyOcclusionEffect_On>
+	<Depth_Of_Field_On>False</Depth_Of_Field_On>
+	<Anti_Aliasing_On>False</Anti_Aliasing_On>
+	<Motion_Blur_On>False</Motion_Blur_On>
+	<ResolutionWidth>1280</ResolutionWidth>
+	<ResolutionHeight>768</ResolutionHeight>
+	<FullscreenMode>1</FullscreenMode>
+	<InformAboutDragBakedSkin>False</InformAboutDragBakedSkin>
+</Config>
