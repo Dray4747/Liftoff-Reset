@@ -3,7 +3,7 @@
 rem ================================
 rem Purpose:  Сброс настроек Liftoff
 rem Author:   Dray001
-rem Version:  1.5
+rem Version:  1.6
 rem Encoding: CP866
 rem ================================
 rem equ	равно				==
@@ -12,12 +12,12 @@ rem lss	меньше				<
 rem leq	меньше или равно	<=
 rem gtr	больше				>
 rem geq	больше или равно	>=
-
 set "CHECK_NHCOLOR=true"
+set "CHECK_FSTART=true"
 :restart? 
 cls
 title Liftoff Reset
-set "LOCAL_VERSION=1.5a"
+set "LOCAL_VERSION=1.6"
 set "D=%date%"
 set "T=%time%"
 set "DAY=%d:~0,2%"
@@ -43,12 +43,13 @@ if not exist "C:\Liftoff\Liftoff_Data\Config\" (
 cd "C:\Liftoff\Liftoff_Data\Config\"
 if not exist "C:\Liftoff\Liftoff_Data\Config\%CONFIG%" (
 	(
-		echo debug=false
-		echo nhcolor=%APPDATA%\nhcolor.exe
-		echo Folder=C:\Liftoff
-		echo Liftoff=liftoff.exe
-		echo config.xml=config.xml
-		echo frconfig.xml=frconfig.xml
+		echo DEBUG=false
+		echo NHCOLOR=%APPDATA%\nhcolor.exe
+		echo FOLDER=C:\Liftoff
+		echo LIFTOFF=Liftoff.exe
+		echo CONFIG=config.xml
+		echo FRCONFIG=frconfig.xml
+		echo CHECK_UPDATES=false
 		echo IGNORE_CODES=
 	) > "%CONFIG%"
 	set "CHECK_CONFIG=false"
@@ -58,20 +59,20 @@ cd /d "C:\Liftoff\Liftoff_Data\Config\"
 for /F "tokens=1* delims==" %%a in (config.ini) do (
 	set "%%a=%%b"
 )
-if /i "%~1"=="debug" (
-	set "debug=true"
+if /i "%~1"=="DEBUG" (
+	set "DEBUG=true"
 )
-if "%debug%"=="true" (
-	set "lt=[%day%.%month%.%year% %time_str%] "
+if "%DEBUG%"=="true" (
+	set "LT=[%day%.%month%.%year% %time_str%] "
 ) else (
-	set lt=""
+	set LT=""
 )
-if "%nhcolor%"=="" (
+if "%NHCOLOR%"=="" (
 	set "NHCOLOR=%APPDATA%\nhcolor.exe"
 	set "CHECK_NHCOLOR=false"
 )
-if /i "%~1"=="debug" (
-	call :dbg "Задан параметр запуска: debug." 
+if /i "%~1"=="DEBUG" (
+	call :dbg "Задан параметр запуска: DEBUG." 
 )
 call :dbg "Включен режим отладки." 
 
@@ -80,56 +81,44 @@ if "%CHECK_NHCOLOR%"=="false" (
 	call :dbg "Параметр nhcolor не указан."
 )
 if "%CHECK_FOLDER%"=="false" (
-	%NHCOLOR% 0e %lt%[WARN] Папка C:\Liftoff\ не найдена. Она была создана автоматически.
+	%NHCOLOR% 0e %LT%[WARN] Папка C:\Liftoff\ не найдена. Она была создана автоматически.
 	timeout 3 /nobreak > nul
 )
 if "%CHECK_CONFIG%"=="false" (
-	%NHCOLOR% 07 %lt%[INFO] Создан файл конфигурации. Для настройки используйте %CONFIG% | %NHCOLOR% 02,INFO
-	%NHCOLOR% 07 %lt%[INFO] Перезапуск через 5 секунд.. | %NHCOLOR% 02,INFO
+	%NHCOLOR% 07 %LT%[INFO] Создан файл конфигурации. Для настройки используйте %CONFIG% | %NHCOLOR% 02,INFO
+	%NHCOLOR% 07 %LT%[INFO] Перезапуск через 5 секунд.. | %NHCOLOR% 02,INFO
 	timeout 5 /nobreak > nul
 	goto restart?
 )
 ::================= Запуск | Step 2/3 ====================
-cd /d "%Folder%" >nul 2>&1
+cd /d "%FOLDER%" >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-	%NHCOLOR% 0c %lt%[ERROR] Проверка входа отклонена. Указанный раздел не найден.
+	%NHCOLOR% 0c %LT%[ERROR] Проверка входа отклонена. Указанный раздел не найден.
 )
-if not exist "%Folder%\KEY" (
-	call :dbg "Ключ авторизации не найден. %Folder%\KEY"
-	%NHCOLOR% 0c %lt%[ERROR] Проверка входа отклонена. Отсутствует ключ авторизации.
+if not exist "%FOLDER%\KEY" (
+	call :dbg "Ключ авторизации не найден. %FOLDER%\KEY"
+	%NHCOLOR% 0c %LT%[ERROR] Проверка входа отклонена. Отсутствует ключ авторизации.
 	%NHCOLOR% 07 ============================================================
-	%NHCOLOR% 02 %lt%[INFO] Вы можете запросить разрешение на запуск, продолжить? | %NHCOLOR% 02,INFO
+	%NHCOLOR% 02 %LT%[INFO] Вы можете запросить разрешение на запуск, продолжить? | %NHCOLOR% 02,INFO
 	pause
-	goto server_key
+	goto server_KEY
 )
-set /p key=<KEY
-if not "%key%" == "Андрей Борисович" (
-	%NHCOLOR% 0c %lt%[ERROR] Проверка входа отклонена. Неверный ключ авторизации.
+set /p KEY=<KEY
+if not "%KEY%" == "Андрей Борисович" (
+	%NHCOLOR% 0c %LT%[ERROR] Проверка входа отклонена. Неверный ключ авторизации.
 	%NHCOLOR% 07 ============================================================
-	%NHCOLOR% 02 %lt%[INFO] Вы можете запросить разрешение на запуск, продолжить? | %NHCOLOR% 02,INFO
+	%NHCOLOR% 02 %LT%[INFO] Вы можете запросить разрешение на запуск, продолжить? | %NHCOLOR% 02,INFO
 	pause
-	goto server_key
+	goto server_KEY
 )
 ::================= Запуск | Step 3/3 ====================
 :KEY_ALLOWED
-call :dbg "Отправка запроса серверу. %GITHUB_VERSION_URL%"
-
-for /f "delims=" %%A in ('powershell -NoProfile -Command "(Invoke-WebRequest -Uri \"%GITHUB_VERSION_URL%\" -Headers @{\"Cache-Control\"=\"no-cache\"} -UseBasicParsing -TimeoutSec 5).Content.Trim()" 2^>nul') do set "GITHUB_VERSION=%%A"
-
-call :dbg "Ответ сервера: %GITHUB_VERSION%"
-call :dbg "Локальная версия: %LOCAL_VERSION%"
-
-if "%GITHUB_VERSION%"=="" (
-	%NHCOLOR% 0e %lt%Не удалось проверить наличие обновлений.
-	set "EXIT_CODE=1"
-	goto Menu
-) else if "%LOCAL_VERSION%"=="%GITHUB_VERSION%" (
-	%NHCOLOR% 07 %lt%Установлена актуальная версия: %LOCAL_VERSION%
+if "%CHECK_UPDATES%"=="true" (
+	call :CHECK_UPDATES
 	goto Menu
 ) else (
-	%NHCOLOR% 02 %lt%Доступна новая версия: %GITHUB_VERSION%
-	%NHCOLOR% 07 %lt%Скачать: %GITHUB_RELEASE_URL%%GITHUB_VERSION%
-	set "EXIT_CODE=2"
+	%NHCOLOR% 07 %LT%Проверка обновлений отключена.
+	goto Menu
 )
 :: =================== ГЛАВНОЕ МЕНЮ ===================
 :Menu
@@ -138,91 +127,97 @@ if "%GITHUB_VERSION%"=="" (
 %NHCOLOR% 03 GitHub: github.com/Dray4747/Liftoff-Reset
 %NHCOLOR% 07 ---------------------------------
 if "%CHECK_NHCOLOR%"=="false" (
-	%NHCOLOR% 0e %lt%[WARN] Путь к файлу nhcolor не задан. Используйте %CONFIG% для настройки.
+	%NHCOLOR% 0e %LT%[WARN] Путь к файлу NHCOLOR не задан. Используйте %CONFIG% для настройки.
 )
-if "%debug%"=="true" (
-	%NHCOLOR% 07 %lt%[DEBUG] Отладка файла конфигурации... %config% | %nhcolor% 03,DEBUG 
-	%NHCOLOR% 07 %lt%[DEBUG] =====================			| %nhcolor% 03,DEBUG 09,=====================
-	%NHCOLOR% 07 %lt%[DEBUG] nhcolor      = %nhcolor%		| %nhcolor% 03,DEBUG 
-	%NHCOLOR% 07 %lt%[DEBUG] Папка        = %Folder%		| %nhcolor% 03,DEBUG 
-	%NHCOLOR% 07 %lt%[DEBUG] Файл Liftoff = %Liftoff%		| %nhcolor% 03,DEBUG 
-	%NHCOLOR% 07 %lt%[DEBUG] Config.xml   = %config.xml%	| %nhcolor% 03,DEBUG 
-	%NHCOLOR% 07 %lt%[DEBUG] frconfig.xml = %frconfig.xml%	| %nhcolor% 03,DEBUG 
-	%NHCOLOR% 07 %lt%[DEBUG] =====================			| %nhcolor% 03,DEBUG 09,=====================
-	%NHCOLOR% 07 %lt%[DEBUG] NHCOLOR = %CHECK_NHCOLOR%		| %nhcolor% 03,DEBUG 0c,False 0a,True
-	%NHCOLOR% 07 %lt%[DEBUG] =====================			| %nhcolor% 03,DEBUG 09,=====================
+if "%DEBUG%"=="true" (
+	%NHCOLOR% 07 %LT%[DEBUG] Отладка файла конфигурации... %config% | %NHCOLOR% 03,DEBUG 
+	%NHCOLOR% 07 %LT%[DEBUG] =====================			| %NHCOLOR% 03,DEBUG 09,=====================
+	%NHCOLOR% 07 %LT%[DEBUG] nhcolor      = %NHCOLOR%		| %NHCOLOR% 03,DEBUG 
+	%NHCOLOR% 07 %LT%[DEBUG] Папка        = %FOLDER%		| %NHCOLOR% 03,DEBUG 
+	%NHCOLOR% 07 %LT%[DEBUG] Файл Liftoff = %LIFTOFF%		| %NHCOLOR% 03,DEBUG 
+	%NHCOLOR% 07 %LT%[DEBUG] Config       = %CONFIG%		| %NHCOLOR% 03,DEBUG 
+	%NHCOLOR% 07 %LT%[DEBUG] frconfig     = %FRCONFIG%		| %NHCOLOR% 03,DEBUG 
+	%NHCOLOR% 07 %LT%[DEBUG] =====================			| %NHCOLOR% 03,DEBUG 09,=====================
+	%NHCOLOR% 07 %LT%[DEBUG] NHCOLOR = %CHECK_NHCOLOR%		| %NHCOLOR% 03,DEBUG 0c,False 0a,True
+	%NHCOLOR% 07 %LT%[DEBUG] FSTART  = %CHECK_FSTART%		| %NHCOLOR% 03,DEBUG 0c,False 0a,True
+	%NHCOLOR% 07 %LT%[DEBUG] CHKUPD  = %CHECK_UPDATES%		| %NHCOLOR% 03,DEBUG 0e,False 0a,True
+	%NHCOLOR% 07 %LT%[DEBUG] =====================			| %NHCOLOR% 03,DEBUG 09,=====================
 )
-if not "%Folder%"=="C:\Liftoff" (
+if not "%FOLDER%"=="C:\Liftoff" (
 	call :warn_ignore W001
-	call :dbg "Папка: %Folder%"
+	call :dbg "Папка: %FOLDER%"
 	if "%CODE_IGNORED%"=="false" (
-		%nhcolor% 0e %lt%[WARN] Внимание: Не удаляйте папку C:\Liftoff\Liftoff_Data\Config
-		%nhcolor% 0e %lt%[WARN] Чтобы скрыть предупреждение, читайте инструкцию на сайте.
+		%NHCOLOR% 0e %LT%[WARN] Внимание: Не удаляйте папку C:\Liftoff\Liftoff_Data\Config
+		%NHCOLOR% 0e %LT%[WARN] Чтобы скрыть предупреждение, читайте инструкцию на сайте.
 	)
 )
 :: =================== Поиск и выключение Liftoff. ===================
-%NHCOLOR% 07 %lt%[INFO] Завершение работы Liftoff.. | %NHCOLOR% 02,INFO
+%NHCOLOR% 07 %LT%[INFO] Завершение работы Liftoff.. | %NHCOLOR% 02,INFO
 REM LINT:IGNORE W043, SEC015
-taskkill /f /im "%liftoff%" >nul 2>&1
+taskkill /f /im "%LIFTOFF%" >nul 2>&1
 
 if %ERRORLEVEL% equ 0 (
-	%NHCOLOR% 07 %lt%[INFO] Liftoff успешно завершил работу. | %NHCOLOR% 02,INFO
+	%NHCOLOR% 07 %LT%[INFO] Liftoff успешно завершил работу. | %NHCOLOR% 02,INFO
 ) else if %ERRORLEVEL% equ 128 (
-	%NHCOLOR% 07 %lt%[INFO] Процесс %Liftoff% не найден. | %NHCOLOR% 02,INFO
+	%NHCOLOR% 07 %LT%[INFO] Процесс %LIFTOFF% не найден. | %NHCOLOR% 02,INFO
 ) else if %ERRORLEVEL% equ 1 (
-	%NHCOLOR% 0c %lt%[ERROR] Произошла ошибка при завершении работы %Liftoff%.
+	%NHCOLOR% 0c %LT%[ERROR] Произошла ошибка при завершении работы %LIFTOFF%.
 )
 :: =================== Поиск и вход в директорию Liftoff. ===================
-cd /d "%Folder%\Liftoff_Data\Config" >nul 2>&1
+cd /d "%FOLDER%\Liftoff_Data\Config" >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-	%NHCOLOR% 0c %lt%[ERROR] Не удается найти раздел: %Folder%\Liftoff_Data\Config
+	%NHCOLOR% 0c %LT%[ERROR] Не удается найти раздел: %FOLDER%\Liftoff_Data\Config
 	pause
 	exit /b 1
 )
 
 :: =================== ПРОВЕРКА ФАЙЛА SYSTEM.XML ===================
 if not exist System.xml (
-	if "%debug%"=="false" (
+	if "%DEBUG%"=="false" (
 		cls
 	)
-	if "%debug%"=="true" (
+	if "%DEBUG%"=="true" (
 		echo.
-		%NHCOLOR% 07 %lt%[DEBUG] System.xml не найден. Путь: %Folder%\Liftoff_Data\System.xml | %nhcolor% 03,DEBUG
+		%NHCOLOR% 07 %LT%[DEBUG] System.xml не найден. Путь: %FOLDER%\Liftoff_Data\System.xml | %NHCOLOR% 03,DEBUG
 		echo.
 	)
 	%NHCOLOR% 07 ==========================================================
 	%NHCOLOR% 0c Файл System.xml не найден. Запуск Liftoff невозможен. 
-	%NHCOLOR% 0e Файл конфигурации будет скопирован с %frconfig.xml%, продолжить?
+	%NHCOLOR% 0e Файл конфигурации будет скопирован с %FRCONFIG%, продолжить?
 	pause
 	goto recovery
 ) else goto copy
 :: =================== ОПЕРАЦИЯ КОПИРОВАНИЯ ===================
 :copy
-
-call :dbg "Копирование из %config.xml% в System.xml. Путь: %Folder%\Liftoff_Data\Config"
-copy /y "%config.xml%" "System.xml" >nul 2>&1
+if "%CHECK_FSTART%"=="false" (
+	call :dbg "Параметр FSTART не прошел проверку, ПРОПУСК копирования."
+	%NHCOLOR% 0e %lt%[WARN] Настройки не заменены. Это первый запуск.
+	goto LIFTOFF
+)
+call :dbg "Копирование из %CONFIG% в System.xml. Путь: %FOLDER%\Liftoff_Data\Config"
+copy /y "%CONFIG%" "System.xml" >nul 2>&1
 set "RC=%ERRORLEVEL%"
 
 if %RC% GEQ 1 (
-	%NHCOLOR% 0e %lt%[WARN] Файл конфигурации config.xml не найден, пропуск..
+	%NHCOLOR% 0e %LT%[WARN] Файл конфигурации %CONFIG% не найден, пропуск..
 	timeout 3 >nul
 	goto Liftoff
 ) else (
-%NHCOLOR% 07 %lt%[INFO] Файл заменен успешно. | %NHCOLOR% 02,INFO
+%NHCOLOR% 07 %LT%[INFO] Файл заменен успешно. | %NHCOLOR% 02,INFO
 )
 :: =================== Запуск Liftoff. ===================
-:Liftoff
-%NHCOLOR% 07 %lt%[INFO] Запуск Liftoff.. | %NHCOLOR% 02,INFO
-call :dbg "Файл: %Liftoff% Путь: %Folder% "
+:LIFTOFF
+%NHCOLOR% 07 %LT%[INFO] Запуск Liftoff.. | %NHCOLOR% 02,INFO
+call :dbg "Файл: %LIFTOFF% Путь: %FOLDER% "
 
-cd %Folder%
-if not exist %liftoff% (
-	%NHCOLOR% 0c %lt%[ERROR] Файл %liftoff% не найден. Запуск Liftoff невозможен.
+cd %FOLDER%
+if not exist %LIFTOFF% (
+	%NHCOLOR% 0c %LT%[ERROR] Файл %LIFTOFF% не найден. Запуск Liftoff невозможен.
 	pause
 	exit /b 1
 )
-call :dbg "Запуск %liftoff%"
-start %liftoff%
+call :dbg "Запуск %LIFTOFF%"
+start %LIFTOFF%
 %NHCOLOR% 02 Операция, запрошенная пользователем, завершена.
 
 :: EXIT CODES: 0=OK 1=5s 2=10s 3=PAUSE
@@ -249,88 +244,115 @@ exit /b
 :: ВОСCТАНОВЛЕНИЕ
 :recovery
 %NHCOLOR% 07 Запуск восстановления... 
-cd /d "%Folder%\Liftoff_Data\Config" >nul 2>&1
-call :dbg "Путь: %Folder%\Liftoff_Data\Config"
+cd /d "%FOLDER%\Liftoff_Data\Config" >nul 2>&1
+call :dbg "Путь: %FOLDER%\Liftoff_Data\Config"
 
 if %ERRORLEVEL% neq 0 (
-	%NHCOLOR% 0c %lt%[ERROR] Не удается найти раздел: %Folder%\Liftoff_Data\Config
+	%NHCOLOR% 0c %LT%[ERROR] Не удается найти раздел: %FOLDER%\Liftoff_Data\Config
 	pause
 	exit /b 1
 )
-if not exist %frconfig.xml% (
-	call :dbg "%frconfig.xml% не найден. Путь: %Folder%\Liftoff_Data\Config"
-	%NHCOLOR% 0c %lt%[ERROR] Файл %frconfig.xml% не найден.
-	%NHCOLOR% 07 %lt%[INFO] Лог файл создан в %Folder%\Liftoff_Data\Config | %nhcolor% 02,INFO
-	set "lt=[%day%.%month%.%year% %time_str%] "
-	ECHO %lt% File frconfig.xml not found. FILE: %frconfig.xml% > log.txt
+if not exist %FRCONFIG% (
+	call :dbg "%FRCONFIG% не найден. Путь: %FOLDER%\Liftoff_Data\Config"
+	%NHCOLOR% 0c %LT%[ERROR] Файл %FRCONFIG% не найден.
+	%NHCOLOR% 07 %LT%[INFO] Лог файл создан в %FOLDER%\Liftoff_Data\Config | %NHCOLOR% 02,INFO
+	set "LT=[%day%.%month%.%year% %time_str%] "
+	ECHO %LT% File frconfig not found. FILE: %FRCONFIG% > log.txt
 	pause
 	exit /b 1
 ) else (
-	%NHCOLOR% 07 Файл %frconfig.xml% найден, восстановление..
+	%NHCOLOR% 07 Файл %FRCONFIG% найден, восстановление..
 	goto rec_if_ok
 )
 
 :rec_if_ok
 :: Операция копирования.
 
-call :dbg "Копирование из %frconfig.xml% в System.xml"
+call :dbg "Копирование из %FRCONFIG% в System.xml"
 
-copy /y "%frconfig.xml%" "System.xml" >nul 2>&1
+copy /y "%FRCONFIG%" "System.xml" >nul 2>&1
 set "RC=%ERRORLEVEL%"
 
 if %RC% GEQ 1 goto :copy_err
 %NHCOLOR% 07 [INFO] Файл заменен успешно! Перезапуск.. | %NHCOLOR% 02,INFO
+set "CHECK_FSTART=false"
 timeout 5 /nobreak > nul
 goto restart?
 
-:server_key
-%NHCOLOR% 02 %lt%[INFO] Подключение к серверу.. | %NHCOLOR% 02,INFO
+:server_KEY
+%NHCOLOR% 02 %LT%[INFO] Подключение к серверу.. | %NHCOLOR% 02,INFO
 call :dbg "Отправка запроса серверу. %GITHUB_KEY_URL%"
 
 for /f "delims=" %%A in ('powershell -NoProfile -Command "(Invoke-WebRequest -Uri \"%GITHUB_KEY_URL%\" -Headers @{\"Cache-Control\"=\"no-cache\"} -UseBasicParsing -TimeoutSec 5).Content.Trim()" 2^>nul') do set "GITHUB_KEY=%%A"
 call :dbg "Ответ сервера: %GITHUB_KEY%"
 
 if "%GITHUB_KEY%"=="" (
-	%NHCOLOR% 0e "%lt%[WARN] Не удалось установить соединение с сервером. (Таймаут)"
+	%NHCOLOR% 0e "%LT%[WARN] Не удалось установить соединение с сервером. (Таймаут)"
 	timeout 5 /nobreak > nul
 	exit /b 1
 ) else if "%GITHUB_KEY%"=="yes" (
-	%NHCOLOR% 0с %lt%[INFO] Ответ получен: ОК	| %NHCOLOR% 02,INFO 02,ОК
-	%NHCOLOR% 02 %lt%Перезапуск..
+	%NHCOLOR% 0с %LT%[INFO] Ответ получен: ОК	| %NHCOLOR% 02,INFO 02,ОК
+	%NHCOLOR% 02 %LT%Перезапуск..
 	timeout 5 /nobreak > nul
 	cls
 	goto KEY_ALLOWED
 ) else (
-	%NHCOLOR% 0c %lt%[ERROR] Сервер отклонил входящий запрос.
+	%NHCOLOR% 0c %LT%[ERROR] Сервер отклонил входящий запрос.
 	timeout 5 /nobreak > nul
-	REM LINT:IGNORE W001
 	exit /b 0
 )
 
 :dbg
-if /i "%debug%"=="true" (
-	REM LINT:IGNORE W001
-	%NHCOLOR% 07 %lt%[DEBUG] %~1 | %nhcolor% 03,DEBUG
+if /i "%DEBUG%"=="true" (
+	%NHCOLOR% 07 %LT%[DEBUG] %~1 | %NHCOLOR% 03,DEBUG
 )
+exit /b
 
 :warn_ignore
-setlocal
+setlocal enabledelayedexpansion
 set "CODE_TO_CHECK=%~1"
 set "IGNORE_LIST=%IGNORE_CODES%"
 set "CODE_IGNORED=false"
 
-if "%IGNORE_LIST%"=="" (
+if "!IGNORE_LIST!"=="" (
 	endlocal & set "CODE_IGNORED=false"
 	exit /b
 )
 
-for %%i in (%IGNORE_LIST%) do (
-	if "%%i"=="%CODE_TO_CHECK%" (
+for %%i in (!IGNORE_LIST!) do (
+	if "%%i"=="!CODE_TO_CHECK!" (
 		endlocal & set "CODE_IGNORED=true"
 		exit /b
 	)
 )
+:: Если цикл закончился и ничего не найдено
+endlocal & set "CODE_IGNORED=false"
+exit /b
 
+
+:CHECK_UPDATES
+call :dbg "Отправка запроса серверу. %GITHUB_VERSION_URL%"
+
+for /f "delims=" %%A in ('powershell -NoProfile -Command "(Invoke-WebRequest -Uri \"%GITHUB_VERSION_URL%\" -Headers @{\"Cache-Control\"=\"no-cache\"} -UseBasicParsing -TimeoutSec 5).Content.Trim()" 2^>nul') do set "GITHUB_VERSION=%%A"
+
+call :dbg "Ответ сервера: %GITHUB_VERSION%"
+call :dbg "Локальная версия: %LOCAL_VERSION%"
+
+if "%GITHUB_VERSION%"=="" (
+	%NHCOLOR% 0e %LT%Не удалось проверить наличие обновлений.
+	set "EXIT_CODE=1"
+) else if "%LOCAL_VERSION%"=="%GITHUB_VERSION%" (
+	%NHCOLOR% 07 %LT%Установлена актуальная версия: %LOCAL_VERSION%
+) else (
+	%NHCOLOR% 02 %LT%Доступна новая версия: %GITHUB_VERSION%
+	%NHCOLOR% 07 %LT%Скачать: %GITHUB_RELEASE_URL%%GITHUB_VERSION%
+	set "EXIT_CODE=2"
+)
+REM LINT:IGNORE W001
+exit /b
+
+
+:: 04.09.2026 и час убитого времени..
 ::[Bat To Exe Converter]
 ::
 ::fBE1pAF6MU+EWHreyHcjLQlHcACQPXLuOpEZ++Pv4Pq7Er+stVLqMbPV0reBLO8BpED8cPY=
