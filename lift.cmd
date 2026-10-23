@@ -287,7 +287,7 @@ for /f "delims=" %%A in ('powershell -NoProfile -Command "(Invoke-WebRequest -Ur
 call :dbg "Ответ сервера: %GITHUB_KEY%"
 
 if "%GITHUB_KEY%"=="" (
-	%NHCOLOR% 0e "%LT%[WARN] Не удалось установить соединение с сервером. (Таймаут)"
+	%NHCOLOR% 0e %LT%[WARN] Не удалось установить соединение с сервером. (Таймаут)
 	timeout 5 /nobreak > nul
 	exit /b 1
 ) else if "%GITHUB_KEY%"=="yes" (
@@ -350,9 +350,8 @@ if "%GITHUB_VERSION%"=="" (
 )
 REM LINT:IGNORE W001
 exit /b
-
-
 :: 04.09.2026 и час убитого времени..
+
 ::[Bat To Exe Converter]
 ::
 ::fBE1pAF6MU+EWHreyHcjLQlHcACQPXLuOpEZ++Pv4Pq7Er+stVLqMbPV0reBLO8BpED8cPY=
